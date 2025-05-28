@@ -1,10 +1,10 @@
-# 📚 Proyecto Laravel + Vue + Inertia - Gestor de Libros
+# Proyecto Laravel + Vue + Inertia - Gestor de Libros
 
 Este proyecto es una aplicación web desarrollada con **Laravel 10**, **Vue 3** e **Inertia.js**. Permite a los usuarios explorar libros, dejar comentarios, crear listas personalizadas y sugerir nuevos títulos. También incluye un panel de administración para gestionar usuarios, libros, frases célebres, etc.
 
 ---
 
-## 🚀 Tecnologías utilizadas
+## Tecnologías utilizadas
 
 - **Laravel 10** (PHP 8+)
 - **Vue 3** con Composition API
@@ -15,7 +15,7 @@ Este proyecto es una aplicación web desarrollada con **Laravel 10**, **Vue 3** 
 
 ---
 
-## ⚙️ Instalación del proyecto
+## Instalación del proyecto
 
 ### 1. Clona el repositorio
 
