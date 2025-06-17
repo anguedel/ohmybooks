@@ -9,6 +9,11 @@ use Inertia\Inertia;
 
 class EscritoUsuarioController extends Controller
 {
+
+    private function puedeModificar(Escrito $escrito)
+{
+    return Auth::user()->rol === 'admin' || $escrito->usuario_id === Auth::id();
+}
     public function store(Request $request)
     {
         $request->validate([
@@ -27,9 +32,10 @@ class EscritoUsuarioController extends Controller
 
     public function update(Request $request, Escrito $escrito)
 {
-    if ($escrito->usuario_id !== Auth::id()) {
-        abort(403); // Prohibido
-    }
+    if (!$this->puedeModificar($escrito)) {
+    abort(403);
+}
+
 
     $request->validate([
         'titulo' => 'required|string|max:255',
@@ -46,9 +52,10 @@ class EscritoUsuarioController extends Controller
 
 public function destroy(Escrito $escrito)
 {
-    if ($escrito->usuario_id !== Auth::id()) {
-        abort(403);
-    }
+    if (!$this->puedeModificar($escrito)) {
+    abort(403);
+}
+
 
     $escrito->delete();
 
@@ -95,6 +102,27 @@ public function panelAdmin()
         'escritos' => $escritos,
     ]);
 }
+
+public function show($id)
+{
+    $escrito = Escrito::with('usuario')->findOrFail($id);
+
+    return Inertia::render('Admin/VerEscrito', [
+        'escrito' => $escrito
+    ]);
+}
+
+public function edit($id)
+{
+    $escrito = Escrito::findOrFail($id);
+
+    return Inertia::render('Admin/EditarEscrito', [
+        'escrito' => $escrito
+    ]);
+}
+
+
+
 
     
 }

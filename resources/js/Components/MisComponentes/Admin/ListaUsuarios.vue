@@ -1,15 +1,16 @@
 <script setup>
-import { ref, onMounted } from 'vue'
+import { ref } from 'vue'
 import { router, useForm } from '@inertiajs/vue3'
 
 defineProps({
   usuarios: Array
 })
+
 const mostrarModalCrear = ref(false)
-const error = ref(null)
 const mostrarModalEditar = ref(false)
 const mostrarModalEliminar = ref(false)
 const usuarioSeleccionado = ref(null)
+const error = ref(null)
 const toastVisible = ref(false)
 const toastMensaje = ref('')
 const toastColor = ref('bg-success')
@@ -34,39 +35,23 @@ const formEditar = useForm({
   foto: null
 })
 
-function editarUsuario(usuario) {
-  abrirModalEditar(usuario)
-}
-
-
-function eliminarUsuario(id) {
-  if (confirm('¿Estás seguro de que quieres eliminar este usuario?')) {
-    router.delete(route('admin.usuarios.destroy', usuarioSeleccionado.value.id), {
-      onSuccess: () => {
-        mostrarModalEliminar.value = false
-        mostrarToast('Usuario eliminado correctamente', 'bg-danger')
-      }
-    })
-
-
-
-  }
-}
-
 function registrarUsuario() {
-  form.post(route('admin.usuarios.store'), {
+  form.post('/admin/usuarios', {
     onSuccess: () => {
       mostrarModalCrear.value = false
       form.reset()
-      mostrarToast('Usuario creado correctamente')
+      mostrarToast('Usuario creado correctamente', 'bg-success')
+      setTimeout(() => {
+        router.reload({ only: ['usuarios'] })
+      }, 300)
     },
     onError: (errors) => {
-      console.error('Errores de validación:', errors)
       error.value = Object.values(errors).flat().join('\n')
+      mostrarToast('Error al crear usuario', 'bg-danger')
     }
-
   })
 }
+
 
 function abrirModalEditar(usuario) {
   usuarioSeleccionado.value = usuario
@@ -80,17 +65,26 @@ function abrirModalEditar(usuario) {
   mostrarModalEditar.value = true
 }
 
+function cerrarModalEditar() {
+  mostrarModalEditar.value = false
+  formEditar.reset()
+}
+
 function actualizarUsuario(id) {
-  formEditar.post(route('admin.usuarios.update', id), {
-    _method: 'put',
+  formEditar.put(`/admin/usuarios/${id}`, {
     onSuccess: () => {
-      mostrarModalEditar.value = false
-      formEditar.reset()
-      mostrarToast('Usuario actualizado correctamente')
+      cerrarModalEditar()
+      mostrarToast('Usuario actualizado correctamente', 'bg-success')
+      setTimeout(() => {
+        router.reload({ only: ['usuarios'] })
+      }, 300)
+    },
+    onError: (errors) => {
+      error.value = Object.values(errors).flat().join('\n')
+      mostrarToast('Error al actualizar usuario', 'bg-danger')
     }
   })
 }
-
 
 function abrirModalEliminar(usuario) {
   usuarioSeleccionado.value = usuario
@@ -101,6 +95,13 @@ function confirmarEliminarUsuario() {
   router.delete(`/admin/usuarios/${usuarioSeleccionado.value.id}`, {
     onSuccess: () => {
       mostrarModalEliminar.value = false
+      mostrarToast('Usuario eliminado correctamente', 'bg-danger')
+      setTimeout(() => {
+        router.reload({ only: ['usuarios'] })
+      }, 300)
+    },
+    onError: () => {
+      mostrarToast('Error al eliminar usuario', 'bg-danger')
     }
   })
 }
@@ -116,9 +117,8 @@ function mostrarToast(mensaje, color = 'bg-success') {
 }
 </script>
 
+
 <template>
-
-
   <div>
     <div class="d-flex justify-content-between align-items-center mb-3">
       <h4 class="fw-bold" style="color: #93c5fd;">Usuarios</h4>
@@ -144,18 +144,14 @@ function mostrarToast(mensaje, color = 'bg-success') {
           <td>{{ usuario.email }}</td>
           <td>{{ usuario.rol }}</td>
           <td>
-            <button class="btn btn-sm btn-warning me-2" @click="editarUsuario(usuario)">Editar</button>
-
-            <button class="btn btn-sm btn-danger" @click="abrirModalEliminar(usuario)">
-              Eliminar
-            </button>
-
+            <button class="btn btn-sm btn-warning me-2" @click="abrirModalEditar(usuario)">Editar</button>
+            <button class="btn btn-sm btn-danger" @click="abrirModalEliminar(usuario)">Eliminar</button>
           </td>
         </tr>
       </tbody>
     </table>
 
-    <!-- Modal: Crear nuevo usuario -->
+    <!-- Modal Crear -->
     <div v-if="mostrarModalCrear" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
       <div class="bg-white w-full max-w-md rounded shadow-lg">
         <div class="bg-primary text-white p-4 flex justify-between items-center rounded-t">
@@ -199,12 +195,12 @@ function mostrarToast(mensaje, color = 'bg-success') {
       </div>
     </div>
 
-    <!-- Modal: Editar usuario -->
+    <!-- Modal Editar -->
     <div v-if="mostrarModalEditar" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
       <div class="bg-white w-full max-w-md rounded shadow-lg">
         <div class="bg-warning text-white p-4 flex justify-between items-center rounded-t">
           <h5 class="fw-bold m-0">Editar usuario</h5>
-          <button @click="mostrarModalEditar = false" class="text-white text-xl font-bold hover:text-danger">×</button>
+          <button @click="cerrarModalEditar" class="text-white text-xl font-bold hover:text-danger">×</button>
         </div>
         <div class="modal-body p-4 bg-light rounded-b">
           <form @submit.prevent="actualizarUsuario(formEditar.id)" enctype="multipart/form-data">
@@ -238,8 +234,7 @@ function mostrarToast(mensaje, color = 'bg-success') {
       </div>
     </div>
 
-
-    <!-- Modal: Confirmar eliminación -->
+    <!-- Modal Eliminar -->
     <div v-if="mostrarModalEliminar" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
       <div class="bg-white w-full max-w-sm rounded shadow-lg p-4">
         <h5 class="fw-bold text-danger mb-3">¿Estás seguro?</h5>
@@ -251,12 +246,20 @@ function mostrarToast(mensaje, color = 'bg-success') {
       </div>
     </div>
 
-  </div>
+    <!-- Toast centrado -->
+    <div v-if="toastVisible" class="toast show fade align-items-center text-white position-fixed p-4"
+      :class="toastColor" role="alert" aria-live="assertive" aria-atomic="true" style="z-index: 9999;
+            min-width: 250px;
+            max-width: 90%;
+            border-radius: 0.5rem;
+            box-shadow: 0 0 10px rgba(0,0,0,0.3);
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            text-align: center;">
+      <strong class="me-2">✔</strong> {{ toastMensaje }}
+    </div>
 
-  <div v-if="toastVisible" class="toast align-items-center text-white position-fixed bottom-0 end-0 m-4 p-3"
-    :class="toastColor" role="alert" aria-live="assertive" aria-atomic="true"
-    style="z-index: 9999; min-width: 200px; border-radius: 0.5rem;">
-    {{ toastMensaje }}
-  </div>
 
+  </div>
 </template>

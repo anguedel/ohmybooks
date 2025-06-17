@@ -98,18 +98,34 @@ class FraseCelebreController extends Controller
     /**
      * Update the specified resource in storage.
      */
-    public function update(Request $request, string $id)
-    {
-        //
-    }
+    // app/Http/Controllers/FraseCelebreController.php
 
-    /**
-     * Remove the specified resource from storage.
-     */
-    public function destroy(string $id)
-    {
-        //
-    }
+public function update(Request $request, $id)
+{
+    $request->validate([
+        'texto' => 'required|string',
+        'autor' => 'required|string|max:255',
+        'categoria' => 'required|string|max:100',
+    ]);
+
+    $frase = FraseCelebre::findOrFail($id);
+    $frase->update([
+        'texto' => $request->texto,
+        'autor' => $request->autor,
+        'categoria' => $request->categoria,
+    ]);
+
+    return back();
+}
+
+public function destroy($id)
+{
+    $frase = FraseCelebre::findOrFail($id);
+    $frase->delete();
+
+    return back();
+}
+
 
     public function like($id)
     {

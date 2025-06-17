@@ -16,7 +16,7 @@ class LibroController extends Controller
      */
     public function index()
     {
-        $libros = Libro::with('autor', 'generos')->paginate(10); // o ->get() si no quieres paginación
+        $libros = Libro::with('autor', 'generos')->paginate(15); // o ->get() si no quieres paginación
 
         return Inertia::render('Admin/Libros/ListaLibros', [
             'libros' => $libros
@@ -113,16 +113,39 @@ class LibroController extends Controller
     /**
      * Update the specified resource in storage.
      */
-    public function update(Request $request, string $id)
-    {
-        //
+    public function update(Request $request, $id)
+{
+    $libro = Libro::findOrFail($id);
+    
+    $libro->update([
+        'titulo' => $request->titulo,
+        'sinopsis' => $request->sinopsis,
+        'autor' => $request->autor,
+        'paginas' => $request->paginas,
+        'editorial' => $request->editorial,
+    ]);
+
+    // Si quieres actualizar el género (relación many-to-many)
+    if ($request->genero_id) {
+        $libro->generos()->sync([$request->genero_id]);
     }
+
+    return redirect()->back()->with('success', 'Libro actualizado correctamente.');
+}
+
 
     /**
      * Remove the specified resource from storage.
      */
-    public function destroy(string $id)
-    {
-        //
-    }
+    public function destroy($id)
+{
+    $libro = Libro::findOrFail($id);
+    
+    // Si tiene relaciones y quieres eliminarlas, puedes hacerlo aquí:
+    // $libro->generos()->detach();
+
+    $libro->delete();
+
+    return redirect()->back()->with('success', 'Libro eliminado correctamente.');
+}
 }

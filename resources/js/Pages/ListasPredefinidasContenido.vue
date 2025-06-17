@@ -4,6 +4,7 @@ import { usePage } from '@inertiajs/vue3'
 import AdminLayout from '@/Layouts/AdminLayout.vue'
 import UsuarioLayout from '@/Layouts/UsuarioLayout.vue'
 import InvitadoLayout from '@/Layouts/InvitadoLayout.vue'
+import ListasPredefinidas from '@/Components/MisComponentes/ListasPredefinidas.vue'
 
 // Obtener el usuario desde los props compartidos
 const user = usePage().props.auth.user

@@ -230,6 +230,30 @@ function eliminarEscrito() {
     </div>
   </div>
 
+
+  <!-- Modal para ver el escrito completo -->
+  <div v-if="showModal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+    <div class="bg-white rounded p-4 max-w-xl w-full position-relative">
+      <button @click="closeModal" class="position-absolute top-0 end-0 m-2 btn-close" aria-label="Cerrar"></button>
+
+      <h2 class="fw-bold mb-2" style="color: #d38e0d;">{{ selected.titulo }}</h2>
+
+      <div class="d-flex align-items-center gap-3 mb-3">
+        <img :src="getFoto(selected.usuario?.foto)" alt="Foto del autor" class="rounded-circle"
+          style="width: 48px; height: 48px; object-fit: cover;" />
+        <small class="text-muted">{{ selected.usuario?.nombre }}</small>
+      </div>
+
+      <div style="max-height: 400px; overflow-y: auto;">
+        <p class="text-dark">{{ selected.contenido }}</p>
+      </div>
+
+      <div class="d-flex justify-content-end mt-4">
+        <button class="btn btn-secondary" @click="closeModal">Cerrar</button>
+      </div>
+    </div>
+  </div>
+
 </template>
 
 <style scoped>

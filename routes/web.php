@@ -17,6 +17,9 @@ use App\Http\Controllers\ComentarioController;
 use App\Http\Controllers\UsuarioController;
 use App\Http\Controllers\LibroSugeridoController;
 use App\Http\Controllers\EscritoUsuarioController;
+use App\Http\Controllers\RegistroManualController;
+
+
 
 require __DIR__.'/auth.php';
 
@@ -42,6 +45,8 @@ Route::post('/frases/{id}/like', [FraseCelebreController::class, 'like'])->name(
 Route::get('/listaspredefinidas', [ListaController::class, 'index'])->name('listas.predefinidas');
 
 Route::get('/listaspredefinidascontenido', fn () => Inertia::render('ListasPredefinidasContenido'))->name('listas.predefinidasContenido');
+
+Route::post('/registro-manual', [RegistroManualController::class, 'store'])->middleware('guest')->name('registro.manual');
 
 
 // ========================================================================
@@ -96,6 +101,10 @@ Route::middleware('auth')->group(function () {
     Route::delete('/escritos/{escrito}', [EscritoUsuarioController::class, 'destroy'])->name('escritos.destroy');
     Route::get('/escritos', [EscritoUsuarioController::class, 'adminIndex'])->name('escritos.index');
 
+    
+    Route::post('/admin/usuarios', [UsuarioController::class, 'store'])->name('admin.usuarios.store');
+
+
 });
 
 
@@ -105,7 +114,7 @@ Route::middleware('auth')->group(function () {
 
 Route::middleware(['auth', 'es_admin'])->prefix('admin')->name('admin.')->group(function () {
     Route::get('/panel', [UsuarioController::class, 'panelAdmin'])->name('dashboard');
-    Route::get('/libros', [LibroController::class, 'index'])->name('admin.libros.index');
+   
     Route::post('/libros', [LibroController::class, 'store'])->name('admin.libros.store');
     Route::get('/usuarios', fn () => Inertia::render('Admin/GestionUsuarios'))->name('admin.usuarios.index');
     Route::get('/libros', fn () => Inertia::render('Admin/GestionLibros'))->name('libros.index');
@@ -113,14 +122,30 @@ Route::middleware(['auth', 'es_admin'])->prefix('admin')->name('admin.')->group(
     Route::post('/listas', [ListaController::class, 'store'])->name('admin.listas.store');
     Route::get('/escritos', [EscritoUsuarioController::class, 'adminIndex'])->name('escritos.index'); 
     Route::post('/escritos', [EscritoUsuarioController::class, 'store'])->name('admin.escritos.store');
+    Route::get('/escritos/{id}', [EscritoUsuarioController::class, 'show'])->name('escritos.show');
+    Route::get('/escritos/{id}/edit', [EscritoUsuarioController::class, 'edit'])->name('escritos.edit');
+    Route::put('/escritos/{escrito}', [EscritoUsuarioController::class, 'update'])->name('escritos.update');
+    Route::delete('/escritos/{escrito}', [EscritoUsuarioController::class, 'destroy'])->name('escritos.destroy');
     Route::get('/frases', fn () => Inertia::render('Admin/GestionFrases'))->name('frases.index');
     Route::post('/frases', [FraseCelebreController::class, 'store'])->name('admin.frases.store');
     Route::put('/usuarios/{id}', [UsuarioController::class, 'update'])->name('admin.usuarios.update');
-
+    Route::put('/frases/{id}', [FraseCelebreController::class, 'update'])->name('frases.update');
+    Route::delete('/frases/{id}', [FraseCelebreController::class, 'destroy'])->name('frases.destroy');
     Route::delete('/usuarios/{id}', [UsuarioController::class, 'destroy'])->name('admin.usuarios.destroy');
      Route::post('/usuarios', [UsuarioController::class, 'store'])->name('admin.usuarios.store');
+    Route::put('/libros/{id}', [LibroController::class, 'update'])->name('admin.libros.update');
+    Route::delete('/libros/{id}', [LibroController::class, 'destroy'])->name('admin.libros.destroy');
+    Route::delete('/libros-sugeridos/{id}', [LibroSugeridoController::class, 'destroy'])->name('libros.sugeridos.destroy');
 
     Route::get('/sugerencias', fn () => Inertia::render('Admin/GestionSugerencias'))->name('sugerencias.index');
+
+    Route::resource('listas', ListaController::class)->except(['show', 'create'])->names([
+    'index' => 'listas.index', // esta ya está definida como vista, puedes eliminar si quieres
+    'store' => 'admin.listas.store',
+    'update' => 'admin.listas.update',
+    'destroy' => 'admin.listas.destroy',
+    'edit' => 'admin.listas.edit',
+]);
 });
 
 

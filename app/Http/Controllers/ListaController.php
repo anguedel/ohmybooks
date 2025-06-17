@@ -16,14 +16,17 @@ class ListaController extends Controller
      */
     public function index()
 {
-    $listas = Lista::withCount('libros')
-    ->get();
-
+    $listas = Lista::with(['libros']) // Aquí cargas los libros completos
+                  ->withCount('libros')
+                  ->where('id_usuario', 28)
+                  ->get();
 
     return Inertia::render('ListasPredefinidasContenido', [
         'listas' => $listas
     ]);
 }
+
+
 
 public function agregarLibro(Request $request)
 {
@@ -87,35 +90,39 @@ public function agregarLibro(Request $request)
 {
     $lista = Lista::with('libros')->findOrFail($id);
 
-    // Si necesitas añadir voto_usuario manualmente:
     $userId = auth()->id();
 
     foreach ($lista->libros as $libro) {
+        // Voto del usuario autenticado
         $voto = \App\Models\Valoracion::where('id_libro', $libro->id)
             ->where('id_usuario', $userId)
             ->first();
 
         $libro->voto_usuario = $voto?->puntuacion;
+
+        // Media de todos los votos para el libro
+        $libro->mediaVoto = \App\Models\Valoracion::where('id_libro', $libro->id)
+            ->avg('puntuacion') ?? 0;
     }
 
     return Inertia::render('ListasUsuarioContenido', [
-        'lista' => $lista // 👈 esto debe existir tal cual
+        'lista' => $lista
     ]);
 }
+
 
 
 
     /**
      * Show the form for editing the specified resource.
      */
-    public function edit(string $id)
-    {
-        //
-    }
+    public function edit($id)
+{
+    $lista = \App\Models\Lista::findOrFail($id);
+    return Inertia::render('Admin/FormEditarLista', ['lista' => $lista]);
+}
 
-    /**
-     * Update the specified resource in storage.
-     */
+   
     public function update(Request $request, $id)
 {
     $request->validate([
@@ -146,5 +153,7 @@ public function agregarLibro(Request $request)
 
     return back()->with('message', 'Lista eliminada correctamente');
 }
+
+
 
 }

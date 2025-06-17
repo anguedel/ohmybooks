@@ -162,16 +162,16 @@ public function adminUsuariosIndex()
     /**
      * Update the specified resource in storage.
      */
-    public function update(Request $request, $id)
+    public function update(Request $request)
 {
     \Log::info('💾 DATOS RECIBIDOS:', $request->all());
 
-    $user = Usuario::findOrFail($id); // <- Aquí usas el ID de la URL, no el Auth
+    $user = auth()->user(); // 👈 obtenemos al usuario logueado
 
     $request->validate([
         'nombre' => 'nullable|string|max:255',
-        'nombre_usuario' => 'sometimes|required|string|max:255',
-        'email' => 'sometimes|required|email|max:255',
+        'nombre_usuario' => 'sometimes|required|string|max:255|unique:usuarios,nombre_usuario,' . $user->id,
+        'email' => 'sometimes|required|email|max:255|unique:usuarios,email,' . $user->id,
         'ciudad' => 'nullable|string|max:255',
         'pais' => 'nullable|string|max:255',
         'foto' => 'nullable|image|max:2048',
@@ -184,15 +184,15 @@ public function adminUsuariosIndex()
     $user->pais = $request->filled('pais') ? $request->input('pais') : $user->pais;
 
     if ($request->hasFile('foto')) {
-        $foto = $request->file('foto');
-        $ruta = $foto->store('public/perfiles');
-        $user->foto = basename($ruta);
+        $foto = $request->file('foto')->store('public/perfiles');
+        $user->foto = basename($foto);
     }
 
     $user->save();
 
     return back()->with('message', 'Usuario actualizado correctamente');
 }
+
 
 
 
@@ -230,7 +230,8 @@ public function panelAdmin()
     $usuario = Usuario::findOrFail($id);
     $usuario->delete();
 
-    return redirect()->back();
+    return ;
 }
+
 
 }

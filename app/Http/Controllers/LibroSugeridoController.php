@@ -26,4 +26,14 @@ class LibroSugeridoController extends Controller
     return ;
 }
 
+public function destroy($id)
+{
+    $sugerencia = LibroSugerido::findOrFail($id);
+    $sugerencia->delete();
+
+    return ;
+}
+
+
+
 }

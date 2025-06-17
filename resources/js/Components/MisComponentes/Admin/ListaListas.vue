@@ -7,9 +7,17 @@ const props = defineProps({
 })
 
 const mostrarModalCrear = ref(false)
+const mostrarModalEditar = ref(false)
+const mostrarModalEliminar = ref(false)
 const mostrarToast = ref(false)
+const listaSeleccionada = ref(null)
 
 const form = useForm({
+    nombre: ''
+})
+
+const formEditar = useForm({
+    id: null,
     nombre: ''
 })
 
@@ -34,26 +42,61 @@ function guardarLista() {
     })
 }
 
-function editarLista(id) {
-    router.visit(`/admin/listas/${id}/edit`)
+function abrirModalEditar(lista) {
+    formEditar.id = lista.id
+    formEditar.nombre = lista.nombre
+    mostrarModalEditar.value = true
 }
 
-function eliminarLista(id) {
-    if (confirm('¿Deseas eliminar esta lista?')) {
-        router.delete(`/admin/listas/${id}`)
-    }
+function cerrarModalEditar() {
+    mostrarModalEditar.value = false
+    formEditar.reset()
+}
+
+function actualizarLista() {
+    formEditar.put(`/admin/listas/${formEditar.id}`, {
+        onSuccess: () => {
+            cerrarModalEditar()
+            mostrarToast.value = true
+            setTimeout(() => {
+                mostrarToast.value = false
+            }, 4000)
+        }
+    })
+}
+
+function abrirModalEliminar(lista) {
+    listaSeleccionada.value = lista
+    mostrarModalEliminar.value = true
+}
+
+function cerrarModalEliminar() {
+    mostrarModalEliminar.value = false
+    listaSeleccionada.value = null
+}
+
+function confirmarEliminarLista() {
+    router.delete(`/admin/listas/${listaSeleccionada.value.id}`, {
+        onSuccess: () => {
+            cerrarModalEliminar()
+            mostrarToast.value = true
+            setTimeout(() => {
+                mostrarToast.value = false
+            }, 4000)
+        }
+    })
 }
 </script>
 
 <template>
     <div>
-        <!-- ✅ TOAST DE CONFIRMACIÓN CENTRADO -->
+        <!-- ✅ TOAST DE CONFIRMACIÓN -->
         <div v-if="mostrarToast" class="position-fixed top-50 start-50 translate-middle p-3"
             style="z-index: 1055; min-width: 300px;">
             <div class="toast text-white bg-success border-0 show shadow" role="alert">
                 <div class="d-flex">
                     <div class="toast-body">
-                        ✅ Lista creada correctamente.
+                        Acción realizada correctamente.
                     </div>
                     <button type="button" class="btn-close btn-close-white me-2 m-auto"
                         @click="mostrarToast = false"></button>
@@ -85,16 +128,15 @@ function eliminarLista(id) {
                     <td>{{ lista.id_usuario }}</td>
                     <td>{{ lista.nombre }}</td>
                     <td>
-                        <button class="btn btn-sm btn-warning me-2" @click="editarLista(lista.id)">Editar</button>
-                        <button class="btn btn-sm btn-danger" @click="eliminarLista(lista.id)">Eliminar</button>
+                        <button class="btn btn-sm btn-warning me-2" @click="abrirModalEditar(lista)">Editar</button>
+                        <button class="btn btn-sm btn-danger" @click="abrirModalEliminar(lista)">Eliminar</button>
                     </td>
                 </tr>
             </tbody>
         </table>
 
         <!-- Modal Crear Lista -->
-        <div v-if="mostrarModalCrear" class="modal fade show d-block" tabindex="-1"
-            style="background-color: rgba(0,0,0,0.5);">
+        <div v-if="mostrarModalCrear" class="modal fade show d-block" style="background-color: rgba(0,0,0,0.5);">
             <div class="modal-dialog">
                 <div class="modal-content">
                     <div class="modal-header">
@@ -111,6 +153,49 @@ function eliminarLista(id) {
                     <div class="modal-footer">
                         <button class="btn btn-secondary" @click="cerrarModalCrear">Cancelar</button>
                         <button class="btn btn-primary" @click="guardarLista">Guardar</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Modal Editar Lista -->
+        <div v-if="mostrarModalEditar" class="modal fade show d-block" style="background-color: rgba(0,0,0,0.5);">
+            <div class="modal-dialog">
+                <div class="modal-content">
+                    <div class="modal-header bg-warning text-white">
+                        <h5 class="modal-title">Editar lista</h5>
+                        <button type="button" class="btn-close" @click="cerrarModalEditar"></button>
+                    </div>
+                    <div class="modal-body">
+                        <div class="mb-3">
+                            <label class="form-label">Nuevo nombre</label>
+                            <input v-model="formEditar.nombre" type="text" class="form-control" />
+                            <div v-if="formEditar.errors.nombre" class="text-danger mt-1">{{ formEditar.errors.nombre }}
+                            </div>
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button class="btn btn-secondary" @click="cerrarModalEditar">Cancelar</button>
+                        <button class="btn btn-warning" @click="actualizarLista">Actualizar</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Modal Confirmar Eliminación -->
+        <div v-if="mostrarModalEliminar" class="modal fade show d-block" style="background-color: rgba(0,0,0,0.5);">
+            <div class="modal-dialog">
+                <div class="modal-content">
+                    <div class="modal-header bg-danger text-white">
+                        <h5 class="modal-title">Confirmar eliminación</h5>
+                        <button type="button" class="btn-close" @click="cerrarModalEliminar"></button>
+                    </div>
+                    <div class="modal-body">
+                        ¿Estás seguro de que deseas eliminar la lista <strong>{{ listaSeleccionada?.nombre }}</strong>?
+                    </div>
+                    <div class="modal-footer">
+                        <button class="btn btn-secondary" @click="cerrarModalEliminar">Cancelar</button>
+                        <button class="btn btn-danger" @click="confirmarEliminarLista">Eliminar</button>
                     </div>
                 </div>
             </div>

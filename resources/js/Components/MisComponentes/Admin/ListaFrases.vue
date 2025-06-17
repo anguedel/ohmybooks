@@ -12,6 +12,18 @@ const toastMensaje = ref('')
 
 const categorias = ['Filosofía', 'Estoicismo', 'Persuasión', 'Motivación', 'Poesía']
 
+const mostrarModalEditar = ref(false)
+const mostrarModalEliminar = ref(false)
+
+const fraseSeleccionada = ref(null)
+
+const formEditar = useForm({
+    id: null,
+    texto: '',
+    autor: '',
+    categoria: ''
+})
+
 const form = useForm({
     texto: '',
     autor: '',
@@ -47,6 +59,52 @@ function eliminarFrase(id) {
         router.delete(`/admin/frases/${id}`)
     }
 }
+
+function abrirModalEditar(frase) {
+    fraseSeleccionada.value = frase
+    formEditar.id = frase.id
+    formEditar.texto = frase.texto
+    formEditar.autor = frase.autor
+    formEditar.categoria = frase.categoria
+    mostrarModalEditar.value = true
+}
+
+function cerrarModalEditar() {
+    mostrarModalEditar.value = false
+    formEditar.reset()
+}
+
+function actualizarFrase() {
+    formEditar.put(`/admin/frases/${formEditar.id}`, {
+        onSuccess: () => {
+            toastMensaje.value = 'Frase actualizada correctamente'
+            toastVisible.value = true
+            cerrarModalEditar()
+            setTimeout(() => (toastVisible.value = false), 3000)
+        }
+    })
+}
+
+function abrirModalEliminar(frase) {
+    fraseSeleccionada.value = frase
+    mostrarModalEliminar.value = true
+}
+
+function cancelarEliminarFrase() {
+    mostrarModalEliminar.value = false
+    fraseSeleccionada.value = null
+}
+
+function confirmarEliminarFrase() {
+    router.delete(`/admin/frases/${fraseSeleccionada.value.id}`, {
+        onSuccess: () => {
+            toastMensaje.value = 'Frase eliminada correctamente'
+            toastVisible.value = true
+            mostrarModalEliminar.value = false
+            setTimeout(() => (toastVisible.value = false), 3000)
+        }
+    })
+}
 </script>
 
 <template>
@@ -77,8 +135,9 @@ function eliminarFrase(id) {
                     <td>{{ frase.autor }}</td>
                     <td>{{ frase.categoria }}</td>
                     <td>
-                        <button class="btn btn-sm btn-warning me-2" @click="editarFrase(frase.id)">Editar</button>
-                        <button class="btn btn-sm btn-danger" @click="eliminarFrase(frase.id)">Eliminar</button>
+                        <button class="btn btn-sm btn-warning me-2" @click="abrirModalEditar(frase)">Editar</button>
+                        <button class="btn btn-sm btn-danger" @click="abrirModalEliminar(frase)">Eliminar</button>
+
                     </td>
                 </tr>
             </tbody>
@@ -120,6 +179,70 @@ function eliminarFrase(id) {
                 </div>
             </div>
         </div>
+
+        <!-- Modal Editar Frase -->
+        <div v-if="mostrarModalEditar" class="modal fade show d-block" tabindex="-1"
+            style="background-color: rgba(0,0,0,0.5);">
+            <div class="modal-dialog">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title">Editar frase</h5>
+                        <button type="button" class="btn-close" @click="cerrarModalEditar"></button>
+                    </div>
+                    <div class="modal-body">
+                        <div class="mb-3">
+                            <label class="form-label">Texto</label>
+                            <textarea v-model="formEditar.texto" class="form-control"></textarea>
+                            <div v-if="formEditar.errors.texto" class="text-danger">{{ formEditar.errors.texto }}</div>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Autor</label>
+                            <input v-model="formEditar.autor" type="text" class="form-control" />
+                            <div v-if="formEditar.errors.autor" class="text-danger">{{ formEditar.errors.autor }}</div>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Categoría</label>
+                            <select v-model="formEditar.categoria" class="form-select">
+                                <option value="">Selecciona una categoría</option>
+                                <option v-for="cat in categorias" :key="cat" :value="cat">{{ cat }}</option>
+                            </select>
+                            <div v-if="formEditar.errors.categoria" class="text-danger">{{ formEditar.errors.categoria
+                                }}</div>
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button class="btn btn-secondary" @click="cerrarModalEditar">Cancelar</button>
+                        <button class="btn btn-warning" @click="actualizarFrase">Guardar cambios</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Modal Confirmar Eliminación -->
+        <div v-if="mostrarModalEliminar" class="modal fade show d-block" tabindex="-1"
+            style="background-color: rgba(0,0,0,0.5);">
+            <div class="modal-dialog">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title text-danger">¿Eliminar frase?</h5>
+                        <button type="button" class="btn-close" @click="cancelarEliminarFrase"></button>
+                    </div>
+                    <div class="modal-body">
+                        <p>¿Estás seguro de que deseas eliminar esta frase?</p>
+                        <blockquote class="blockquote">
+                            <p class="mb-0">"{{ fraseSeleccionada?.texto }}"</p>
+                            <footer class="blockquote-footer">{{ fraseSeleccionada?.autor }}</footer>
+                        </blockquote>
+                    </div>
+                    <div class="modal-footer">
+                        <button class="btn btn-secondary" @click="cancelarEliminarFrase">Cancelar</button>
+                        <button class="btn btn-danger" @click="confirmarEliminarFrase">Eliminar</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+
 
         <!-- Toast de confirmación -->
         <div v-if="toastVisible"

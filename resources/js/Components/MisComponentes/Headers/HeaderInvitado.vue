@@ -69,17 +69,27 @@ function registrarUsuario(e) {
     data.append(key, value)
   }
 
-  router.post('/register', data, {
+  router.post(route('registro.manual'), data, {
     forceFormData: true,
     onError: (errors) => {
       error.value = Object.values(errors)[0]
     },
     onSuccess: () => {
       cerrarModalRegistro()
+      form.value = {
+        nombre: '',
+        nombre_usuario: '',
+        email: '',
+        password: '',
+        ciudad: '',
+        pais: '',
+        foto: null,
+      }
       registroExitoso.value = true
       setTimeout(() => registroExitoso.value = false, 4000)
     }
   })
+
 }
 </script>
 
@@ -94,26 +104,36 @@ function registrarUsuario(e) {
 
       <div class="row align-items-center">
         <div class="col-2 d-flex justify-content-start">
-          <img src="/images/LogoOficial.png" alt="Logo" class="img-fluid" style="max-height: 180px; margin-top: -20px;" />
+          <img src="/images/LogoOficial.png" alt="Logo" class="img-fluid"
+            style="max-height: 180px; margin-top: -20px;" />
         </div>
 
         <div class="col-8 d-flex justify-content-center">
           <nav class="d-flex gap-4 align-items-center position-relative">
             <a class="nav-link" href="/">Inicio</a>
 
-            <div class="dropdown position-relative" @mouseenter="showDropdown('explorar')" @mouseleave="hideDropdown('explorar')">
+            <div class="dropdown position-relative" @mouseenter="showDropdown('explorar')"
+              @mouseleave="hideDropdown('explorar')">
               <a href="#" class="nav-link dropdown-toggle">Explorador de libros</a>
               <ul class="dropdown-menu-custom small-dropdown" v-if="dropdowns.explorar">
-                <li><Link :href="route('listas.predefinidas')">Listas</Link></li>
-                <li><Link :href="route('generos')">Géneros</Link></li>
+                <li>
+                  <Link :href="route('listas.predefinidas')">Listas</Link>
+                </li>
+                <li>
+                  <Link :href="route('generos')">Géneros</Link>
+                </li>
               </ul>
             </div>
 
             <div class="dropdown" @mouseenter="showDropdown('comunidad')" @mouseleave="hideDropdown('comunidad')">
               <a href="#" class="nav-link dropdown-toggle">Comunidad</a>
               <ul class="dropdown-menu-custom" v-if="dropdowns.comunidad">
-                <li><Link :href="route('rincon')">El rincón del escritor</Link></li>
-                <li><Link :href="route('frases')">Frases célebres</Link></li>
+                <li>
+                  <Link :href="route('rincon')">El rincón del escritor</Link>
+                </li>
+                <li>
+                  <Link :href="route('frases')">Frases célebres</Link>
+                </li>
               </ul>
             </div>
           </nav>
@@ -141,13 +161,20 @@ function registrarUsuario(e) {
           </div>
           <div class="modal-body">
             <form @submit.prevent="registrarUsuario" enctype="multipart/form-data">
-              <div class="mb-2"><label class="form-label">Nombre completo</label><input v-model="form.nombre" type="text" class="form-control" /></div>
-              <div class="mb-2"><label class="form-label">Nombre de usuario</label><input v-model="form.nombre_usuario" type="text" class="form-control" /></div>
-              <div class="mb-2"><label class="form-label">Email</label><input v-model="form.email" type="email" class="form-control" /></div>
-              <div class="mb-2"><label class="form-label">Contraseña</label><input v-model="form.password" type="password" class="form-control" /></div>
-              <div class="mb-2"><label class="form-label">Ciudad</label><input v-model="form.ciudad" type="text" class="form-control" /></div>
-              <div class="mb-2"><label class="form-label">País</label><input v-model="form.pais" type="text" class="form-control" /></div>
-              <div class="mb-3"><label class="form-label">Foto de perfil</label><input type="file" class="form-control" @change="e => form.foto = e.target.files?.[0] ?? null" /></div>
+              <div class="mb-2"><label class="form-label">Nombre completo</label><input v-model="form.nombre"
+                  type="text" class="form-control" /></div>
+              <div class="mb-2"><label class="form-label">Nombre de usuario</label><input v-model="form.nombre_usuario"
+                  type="text" class="form-control" /></div>
+              <div class="mb-2"><label class="form-label">Email</label><input v-model="form.email" type="email"
+                  class="form-control" /></div>
+              <div class="mb-2"><label class="form-label">Contraseña</label><input v-model="form.password"
+                  type="password" class="form-control" /></div>
+              <div class="mb-2"><label class="form-label">Ciudad</label><input v-model="form.ciudad" type="text"
+                  class="form-control" /></div>
+              <div class="mb-2"><label class="form-label">País</label><input v-model="form.pais" type="text"
+                  class="form-control" /></div>
+              <div class="mb-3"><label class="form-label">Foto de perfil</label><input type="file" class="form-control"
+                  @change="e => form.foto = e.target.files?.[0] ?? null" /></div>
               <div v-if="error" class="alert alert-danger">{{ error }}</div>
               <button type="submit" class="btn btn-primary w-100">Crear usuario</button>
             </form>
